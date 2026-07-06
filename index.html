@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Friend Profile</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:#f4f5f7; }
+    #profile { min-height:100vh; background:white; text-align:center; padding:60px 22px; }
+    .avatar { width:105px; height:105px; margin:0 auto 18px; border-radius:50%; background:linear-gradient(135deg,#7c8cff,#ff8ab3); display:flex; align-items:center; justify-content:center; font-size:48px; }
+    .name { font-size:25px; font-weight:700; }
+    .id { color:#888; margin-top:8px; font-size:14px; }
+    .message { margin:28px auto; max-width:380px; padding:18px; background:#f5f6f8; border-radius:16px; color:#444; line-height:1.6; }
+    .add-btn { border:0; border-radius:12px; padding:15px 38px; font-size:17px; font-weight:bold; background:#222; color:white; }
+    .loading { margin-top:30px; color:#999; font-size:13px; }
+    #blackout { display:none; position:fixed; inset:0; background:black; z-index:10; }
+    #terminalScreen { display:none; position:fixed; inset:0; z-index:20; background:#000; color:#00ff41; font-family:"Courier New",monospace; padding:20px; overflow:hidden; }
+    .warning { color:#ff2b2b; font-size:22px; font-weight:bold; animation:blink .6s infinite; }
+    #terminal { margin-top:20px; white-space:pre-wrap; font-size:14px; line-height:1.65; }
+    .bar-wrap { margin-top:22px; width:100%; height:18px; border:1px solid #00ff41; }
+    #bar { width:0%; height:100%; background:#00ff41; transition:width .2s; }
+    #percent { text-align:right; margin-top:7px; }
+    #critical { display:none; position:fixed; inset:0; z-index:30; background:#b00000; color:white; align-items:center; justify-content:center; text-align:center; padding:25px; animation:flash .22s infinite alternate; }
+    #critical h1 { font-size:42px; margin-bottom:20px; }
+    #joke { display:none; position:fixed; inset:0; z-index:40; background:#111; color:white; align-items:center; justify-content:center; text-align:center; padding:30px; }
+    #joke h1 { font-size:38px; }
+    .small { margin-top:25px; color:#aaa; font-size:13px; line-height:1.7; }
+    @keyframes blink { 50% { opacity:.2; } }
+    @keyframes flash { from { background:#7d0000; } to { background:#ff0000; } }
+    .shake { animation:shake .08s infinite; }
+    @keyframes shake {
+      0% { transform:translate(0,0); } 25% { transform:translate(4px,-3px); }
+      50% { transform:translate(-4px,3px); } 75% { transform:translate(3px,4px); }
+      100% { transform:translate(-3px,-4px); }
+    }
+  </style>
+</head>
+<body>
+  <div id="profile">
+    <div class="avatar">🍓</div>
+    <div class="name">ストロベリー</div>
+    <div class="id">@strawberry267065</div>
+    <div class="message">こんにちは！<br>友だち追加ありがとうございます✨</div>
+    <button class="add-btn" type="button">プロフィールを開く</button>
+    <div class="loading">セキュア接続を確認しています...</div>
+  </div>
+
+  <div id="blackout"></div>
+
+  <div id="terminalScreen">
+    <div class="warning">⚠ UNAUTHORIZED ACCESS DETECTED ⚠</div>
+    <div id="terminal"></div>
+    <div class="bar-wrap"><div id="bar"></div></div>
+    <div id="percent">0%</div>
+  </div>
+
+  <div id="critical">
+    <div>
+      <h1>⚠ CRITICAL ⚠</h1>
+      <p>REMOTE SESSION ESTABLISHED</p>
+      <p>DEVICE CONTROL TRANSFERRED</p>
+      <p>DO NOT CLOSE THIS WINDOW</p>
+    </div>
+  </div>
+
+  <div id="joke">
+    <div>
+      <h1>🤣 やっほー 🤣</h1>
+      <p style="font-size:22px;">怪しいリンク踏んだなww</p>
+      <div class="small">
+        ※これはジョークページです。<br>
+        情報取得・保存・送信は一切していません。<br>
+        位置情報、IP、Cookie、写真、連絡先、カメラ、マイクにも<br>
+        一切アクセスしていません。
+      </div>
+    </div>
+  </div>
+
+<script>
+  const profile = document.getElementById("profile");
+  const blackout = document.getElementById("blackout");
+  const terminalScreen = document.getElementById("terminalScreen");
+  const terminal = document.getElementById("terminal");
+  const bar = document.getElementById("bar");
+  const percent = document.getElementById("percent");
+  const critical = document.getElementById("critical");
+  const joke = document.getElementById("joke");
+
+  const fakeLines = [
+    "[SYSTEM] Initializing session...",
+    "[OK] Connection established",
+    "[SCAN] Checking device environment...",
+    "[FOUND] Active session detected",
+    "[SYNC] Preparing remote channel...",
+    "[PROCESS] Reading configuration...",
+    "[UPLOAD] Packaging device data...",
+    "[UPLOAD] Transmitting archive...",
+    "[AUTH] Remote token accepted",
+    "[WARNING] User interaction detected",
+    "[LOCK] Session termination blocked...",
+    "[DONE] Transfer completed"
+  ];
+
+  setTimeout(() => {
+    profile.style.display = "none";
+    blackout.style.display = "block";
+    setTimeout(() => {
+      blackout.style.display = "none";
+      terminalScreen.style.display = "block";
+      startFakeSequence();
+    }, 450);
+  }, 2000);
+
+  function startFakeSequence() {
+    let lineIndex = 0;
+    function addLine() {
+      if (lineIndex < fakeLines.length) {
+        terminal.textContent += fakeLines[lineIndex] + "\n";
+        lineIndex++;
+        setTimeout(addLine, 330);
+      }
+    }
+    addLine();
+
+    let progress = 0;
+    const timer = setInterval(() => {
+      progress += Math.floor(Math.random() * 10) + 3;
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(timer);
+        setTimeout(showCritical, 500);
+      }
+      bar.style.width = progress + "%";
+      percent.textContent = progress + "%";
+    }, 300);
+  }
+
+  function showCritical() {
+    terminalScreen.style.display = "none";
+    critical.style.display = "flex";
+    document.body.classList.add("shake");
+    setTimeout(() => {
+      document.body.classList.remove("shake");
+      critical.style.display = "none";
+      joke.style.display = "flex";
+    }, 2500);
+  }
+</script>
+</body>
+</html>
